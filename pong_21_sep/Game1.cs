@@ -24,6 +24,7 @@ namespace pong
         int redY = 100;
         int ballX = 0;
         int playerSpeed = 3;
+        int test = 0;
 
         static void Main()
         {
