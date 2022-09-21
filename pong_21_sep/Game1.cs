@@ -26,6 +26,7 @@ namespace pong
         int ballX = 10;
         int ballY = 10;
         Vector2 ballSpeed;
+        int ballSpeedXRandom = 3;
         int playerSpeed = 3;
         Random random = new Random();
         
@@ -47,7 +48,13 @@ namespace pong
         {
             ballX = graphics.PreferredBackBufferWidth / 2;
             ballY = graphics.PreferredBackBufferHeight / 2;
-            int ballSpeedXRandom = random.Next(-4, 4);
+            int ballSpeedXRandomTemp = random.Next(-4, 4);
+            if (ballSpeedXRandomTemp == 0)
+            {
+                ballSpeedXRandomTemp = random.Next(-4, 4);
+            }
+            else ballSpeedXRandom = ballSpeedXRandomTemp;
+
             ballSpeed = new Vector2(ballSpeedXRandom, 5-Math.Abs(ballSpeedXRandom));
             ballPosition = new Vector2(ballX, ballY);
             base.Initialize();
