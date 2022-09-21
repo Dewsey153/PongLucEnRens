@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\Rens de Wit\\source\\repos\\Dewsey153\\PongLucEnRens\\pong\\pong.csproj": {}
+    "C:\\Users\\Rens de Wit\\Desktop\\gameprogrammeren\\own_projects\\pong\\pong_21_sep\\pong.csproj": {}
   },
   "projects": {
-    "C:\\Users\\Rens de Wit\\source\\repos\\Dewsey153\\PongLucEnRens\\pong\\pong.csproj": {
+    "C:\\Users\\Rens de Wit\\Desktop\\gameprogrammeren\\own_projects\\pong\\pong_21_sep\\pong.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\Rens de Wit\\source\\repos\\Dewsey153\\PongLucEnRens\\pong\\pong.csproj",
+        "projectUniqueName": "C:\\Users\\Rens de Wit\\Desktop\\gameprogrammeren\\own_projects\\pong\\pong_21_sep\\pong.csproj",
         "projectName": "pong",
-        "projectPath": "C:\\Users\\Rens de Wit\\source\\repos\\Dewsey153\\PongLucEnRens\\pong\\pong.csproj",
+        "projectPath": "C:\\Users\\Rens de Wit\\Desktop\\gameprogrammeren\\own_projects\\pong\\pong_21_sep\\pong.csproj",
         "packagesPath": "C:\\Users\\Rens de Wit\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\Rens de Wit\\source\\repos\\Dewsey153\\PongLucEnRens\\pong\\obj\\",
+        "outputPath": "C:\\Users\\Rens de Wit\\Desktop\\gameprogrammeren\\own_projects\\pong\\pong_21_sep\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

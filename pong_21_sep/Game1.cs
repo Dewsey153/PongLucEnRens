@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using System;
 using System.Net;
+using System.Resources;
 using System.Security.Cryptography.Xml;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 
@@ -22,9 +23,12 @@ namespace pong
         Vector2 redPosition;
         int blueY = 100;
         int redY = 100;
-        int ballX = 0;
+        int ballX = 10;
+        int ballY = 10;
+        Vector2 ballSpeed;
         int playerSpeed = 3;
-        int test = 0;
+        Random random = new Random();
+        
 
         static void Main()
         {
@@ -41,6 +45,11 @@ namespace pong
 
         protected override void Initialize()
         {
+            ballX = graphics.PreferredBackBufferWidth / 2;
+            ballY = graphics.PreferredBackBufferHeight / 2;
+            int ballSpeedXRandom = random.Next(-4, 4);
+            ballSpeed = new Vector2(ballSpeedXRandom, 5-Math.Abs(ballSpeedXRandom));
+            ballPosition = new Vector2(ballX, ballY);
             base.Initialize();
         }
 
@@ -54,13 +63,6 @@ namespace pong
 
         protected override void Update(GameTime gameTime)
         {
-            if (Keyboard.GetState().IsKeyDown(Keys.Space)){
-                ballX -=1;
-            }
-            else
-            {
-                ballX += 1;
-            }
 
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
@@ -82,9 +84,20 @@ namespace pong
                 redY = redY + playerSpeed;
             }
 
-            ballPosition = new Vector2(ballX, 100);
-            bluePosition = new Vector2(10, blueY);
-            redPosition = new Vector2(400, redY);
+            ballX = (int)ballPosition.X;
+            ballY = (int)ballPosition.Y;
+
+            if (redY <= 0) redY = 0;
+            if(blueY<=0) blueY = 0;
+            if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
+            if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
+            //bounce from walls
+            if (ballX >= graphics.PreferredBackBufferWidth - ball.Width || ballX <= 0) ballSpeed.X = -1 * ballSpeed.X;
+            if (ballY >= graphics.PreferredBackBufferHeight - ball.Height || ballY <= 0) ballSpeed.Y = -1 * ballSpeed.Y;
+            //move ball and players
+            ballPosition = Vector2.Add(ballPosition, ballSpeed);
+            bluePosition = new Vector2(0, blueY);
+            redPosition = new Vector2(graphics.PreferredBackBufferWidth-blue.Width, redY);
             base.Update(gameTime);
         }
 
