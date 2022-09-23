@@ -46,17 +46,7 @@ namespace pong
 
         protected override void Initialize()
         {
-            ballX = graphics.PreferredBackBufferWidth / 2;
-            ballY = graphics.PreferredBackBufferHeight / 2;
-            int ballSpeedXRandomTemp = random.Next(-4, 4);
-            if (ballSpeedXRandomTemp == 0)
-            {
-                ballSpeedXRandomTemp = random.Next(-4, 4);
-            }
-            else ballSpeedXRandom = ballSpeedXRandomTemp;
-
-            ballSpeed = new Vector2(ballSpeedXRandom, 5-Math.Abs(ballSpeedXRandom));
-            ballPosition = new Vector2(ballX, ballY);
+            startBall();
             base.Initialize();
         }
 
@@ -98,13 +88,20 @@ namespace pong
             if(blueY<=0) blueY = 0;
             if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
             if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
+           
+            ballHitPaddle();
+            ballMissed();
             //bounce from walls
-            if (ballX >= graphics.PreferredBackBufferWidth - ball.Width || ballX <= 0) ballSpeed.X = -1 * ballSpeed.X;
             if (ballY >= graphics.PreferredBackBufferHeight - ball.Height || ballY <= 0) ballSpeed.Y = -1 * ballSpeed.Y;
             //move ball and players
             ballPosition = Vector2.Add(ballPosition, ballSpeed);
             bluePosition = new Vector2(0, blueY);
             redPosition = new Vector2(graphics.PreferredBackBufferWidth-blue.Width, redY);
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+            {
+                startBall();
+            }
+            
             base.Update(gameTime);
         }
 
@@ -116,6 +113,53 @@ namespace pong
             spriteBatch.Draw(blue, bluePosition, Color.White);
             spriteBatch.Draw(red, redPosition, Color.White);
             spriteBatch.End();
+        }
+
+        public void startBall()
+        {
+            ballX = graphics.PreferredBackBufferWidth / 2;
+            ballY = graphics.PreferredBackBufferHeight / 2;
+            int ballSpeedXRandomTemp = random.Next(-4, 4);
+            if (ballSpeedXRandomTemp == 0)
+            {
+                ballSpeedXRandomTemp = random.Next(-4, 4);
+            }
+            else ballSpeedXRandom = ballSpeedXRandomTemp;
+
+            ballSpeed = new Vector2(ballSpeedXRandom, 5 - Math.Abs(ballSpeedXRandom));
+            ballPosition = new Vector2(ballX, ballY);
+        }
+
+        public void ballHitPaddle()
+        {
+            if (ballX == (bluePosition.X + blue.Width))
+            {
+                if (ballY >= bluePosition.Y && ballY + ball.Height <= (bluePosition.Y + blue.Height + 10))
+                {
+                    ballSpeed.X = -1 * ballSpeed.X;
+                }
+            }
+
+            else if (ballX + ball.Width == redPosition.X)
+            {
+                if (ballY >= redPosition.Y && ballY + ball.Height <= (redPosition.Y + red.Height + 10))
+                {
+                    ballSpeed.X = -1 * ballSpeed.X;
+                }
+            }
+        }
+
+        public void ballMissed()
+        {
+            if(ballX < 0)
+            {
+                startBall();
+            }
+
+            if (ballX > graphics.PreferredBackBufferWidth)
+            {
+                startBall();
+            }
         }
     }
 }
