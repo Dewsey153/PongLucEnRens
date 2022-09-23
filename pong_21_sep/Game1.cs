@@ -27,7 +27,7 @@ namespace pong
         int ballY = 10;
         Vector2 ballSpeed;
         int ballSpeedXRandom = 3;
-        int playerSpeed = 3;
+        int playerSpeed = 5;
         Random random = new Random();
         
 
@@ -132,17 +132,17 @@ namespace pong
 
         public void ballHitPaddle()
         {
-            if (ballX == (bluePosition.X + blue.Width))
+            if (ballX <= (bluePosition.X + blue.Width))
             {
-                if (ballY >= bluePosition.Y && ballY + ball.Height <= (bluePosition.Y + blue.Height + 10))
+                if (ballY + ball.Height >= bluePosition.Y && ballY <= bluePosition.Y + blue.Height)
                 {
                     ballSpeed.X = -1 * ballSpeed.X;
                 }
             }
 
-            else if (ballX + ball.Width == redPosition.X)
+            else if (ballX + ball.Width >= redPosition.X)
             {
-                if (ballY >= redPosition.Y && ballY + ball.Height <= (redPosition.Y + red.Height + 10))
+                if (ballY + ball.Height >= redPosition.Y && ballY <= redPosition.Y + red.Height)
                 {
                     ballSpeed.X = -1 * ballSpeed.X;
                 }
