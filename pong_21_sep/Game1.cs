@@ -26,10 +26,10 @@ namespace pong
         int ballX = 10;
         int ballY = 10;
         Vector2 ballSpeed;
-        int ballSpeedXRandom = 3;
+        int ballSpeedXRandom;
         int playerSpeed = 3;
         Random random = new Random();
-        
+
 
         static void Main()
         {
@@ -55,7 +55,7 @@ namespace pong
             }
             else ballSpeedXRandom = ballSpeedXRandomTemp;
 
-            ballSpeed = new Vector2(ballSpeedXRandom, 5-Math.Abs(ballSpeedXRandom));
+            ballSpeed = new Vector2(ballSpeedXRandom, 5 - Math.Abs(ballSpeedXRandom));
             ballPosition = new Vector2(ballX, ballY);
             base.Initialize();
         }
@@ -95,7 +95,7 @@ namespace pong
             ballY = (int)ballPosition.Y;
 
             if (redY <= 0) redY = 0;
-            if(blueY<=0) blueY = 0;
+            if (blueY <= 0) blueY = 0;
             if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
             if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
             //bounce from walls
@@ -104,7 +104,7 @@ namespace pong
             //move ball and players
             ballPosition = Vector2.Add(ballPosition, ballSpeed);
             bluePosition = new Vector2(0, blueY);
-            redPosition = new Vector2(graphics.PreferredBackBufferWidth-blue.Width, redY);
+            redPosition = new Vector2(graphics.PreferredBackBufferWidth - blue.Width, redY);
             base.Update(gameTime);
         }
 
