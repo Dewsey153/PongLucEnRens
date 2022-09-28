@@ -122,6 +122,7 @@ namespace pong
             {
                 startBall();
             }
+            GameRestart();
 
             base.Update(gameTime);
         }
@@ -137,7 +138,7 @@ namespace pong
             redLives.Draw(gameTime, spriteBatch);
             spriteBatch.End();
         }
-
+        
         public void startBall()
         {
             ballX = graphics.PreferredBackBufferWidth / 2;
@@ -200,6 +201,15 @@ namespace pong
                 startBall();
             }
         }
+        public void GameRestart()
+        {
+            if (Keyboard.GetState().IsKeyDown(Keys.R))
+            {
+                startBall();
+                blueLives.resetLives();
+                redLives.resetLives();
+            }
+        }
     }
     class Lives {
         int lives = 3;
@@ -213,6 +223,10 @@ namespace pong
         public void takeLive()
         {
             lives--;
+        }
+        public void resetLives()
+        {
+            lives = 3;
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
