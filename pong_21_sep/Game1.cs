@@ -30,11 +30,13 @@ namespace pong
         Vector2 ballDirection;
         int blueY = 100;
         int redY = 100;
-        float ballX = 10;
-        float ballY = 10;
-        int ballSpeed = 5;
+        float ballX = 10f;
+        float ballY = 10f;
+        float ballSpeed;
+        const float initialballSpeed = 4f;
+        const float acceleration = 1.1f;
         int ballSpeedXRandom = 3;
-        int playerSpeed = 5;
+        int playerSpeed = 10;
         float minBallDirectionX = 0.3f;
         float minBallDirectionY = 0.2f;
         Random random = new Random();
@@ -77,22 +79,22 @@ namespace pong
 
             if (Keyboard.GetState().IsKeyDown(Keys.W))
             {
-                blueY = blueY - playerSpeed;
+                blueY = blueY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.S))
             {
-                blueY = blueY + playerSpeed;
+                blueY = blueY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Up))
             {
-                redY = redY - playerSpeed;
+                redY = redY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
             }
 
             if (Keyboard.GetState().IsKeyDown(Keys.Down))
             {
-                redY = redY + playerSpeed;
+                redY = redY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
             }
 
             ballX = ballPosition.X;
@@ -115,7 +117,7 @@ namespace pong
             if (ballDirection.Y > -minBallDirectionY && ballDirection.Y < 0) ballDirection.Y = -minBallDirectionY;
 
             ballDirection.Normalize();
-            ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection);
+            ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection*gameTime.ElapsedGameTime.Milliseconds/10);
             bluePosition = new Vector2(0, blueY);
             redPosition = new Vector2(graphics.PreferredBackBufferWidth - blue.Width, redY);
             if (Keyboard.GetState().IsKeyDown(Keys.Space))
@@ -141,6 +143,7 @@ namespace pong
         
         public void startBall()
         {
+            ballSpeed = initialballSpeed;
             ballX = graphics.PreferredBackBufferWidth / 2;
             ballY = graphics.PreferredBackBufferHeight / 2;
             int ballSpeedXRandomTemp = random.Next(-4, 4);
@@ -168,6 +171,7 @@ namespace pong
                         ballDirection.Y = ballDirection.Y * Angle.Y * 3;
                     }
                     else ballDirection.X *= -1;
+                    ballSpeed *= acceleration;
                 }
             }
 
@@ -183,6 +187,7 @@ namespace pong
                         ballDirection.Y = ballDirection.Y * Angle.Y * 3;
                     }
                     else ballDirection.X *= -1;
+                    ballSpeed *= acceleration;
                 }
             }
         }
@@ -231,17 +236,9 @@ namespace pong
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            if (lives >= 1)
+            for(int i = 0; i < lives; i++)
             {
-                spriteBatch.Draw(lifeSprite, livesPosition, Color.White);
-                if(lives>= 2)
-                {
-                    spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(20,0), Color.White);
-                    if(lives == 3)
-                    {
-                        spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(40, 0), Color.White);
-                    }
-                }
+                spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(i * 20, 0), Color.White);
             }
             //switch (lives)
             //{
