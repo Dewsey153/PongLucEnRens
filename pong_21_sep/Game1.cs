@@ -23,7 +23,11 @@ namespace pong
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
         Rectangle rectangle;
-        SpriteFont StartingText;
+        SpriteFont StartingTextCentral;
+        SpriteFont StartingTextControls;
+        float ControlsPositionY = 20f;
+        float Controls1PostionX = 20f;
+        float Controls2PositionX = 620f;
         Texture2D ball;
         Texture2D blue;
         Texture2D red;
@@ -47,7 +51,9 @@ namespace pong
         Lives blueLives;
         enum GameState{Start, Playing, Win};
         GameState currentState;
-        
+        enum Winner { Red, Blue, None};
+        Winner winner;
+
 
 
         static void Main()
@@ -66,6 +72,7 @@ namespace pong
         protected override void Initialize()
         {
             currentState = GameState.Start;
+            winner = Winner.None;
             startBall();
             redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 76);
             blueLives = new Lives(Content, 20);
@@ -75,7 +82,8 @@ namespace pong
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            StartingText = spriteBatch.DrawString(File, "Score", new Vector2(100, 100), Color.Black);
+            StartingTextCentral = Content.Load<SpriteFont>("StartingTextCentral");
+            StartingTextControls = Content.Load<SpriteFont>("StartingTextControls");
             ball = Content.Load<Texture2D>("ball");
             blue = Content.Load<Texture2D>("bluePlayer");
             red = Content.Load<Texture2D>("redPlayer");
@@ -140,9 +148,10 @@ namespace pong
                 {
                     startBall();
                 }
-                GameRestart();
+                GameOver();
             }
 
+            GameRestart();
             base.Update(gameTime);
         }
 
@@ -152,7 +161,13 @@ namespace pong
             spriteBatch.Begin();
             if (currentState == GameState.Start)
             {
-
+                spriteBatch.DrawString(StartingTextCentral, "Start the game by pressing any button", new Vector2(20, graphics.PreferredBackBufferHeight/2-30), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PostionX, ControlsPositionY), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Controls Player Two", new Vector2(Controls2PositionX, ControlsPositionY), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PostionX, ControlsPositionY+20), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PostionX, ControlsPositionY+35), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Up: Up arrow key", new Vector2(Controls2PositionX, ControlsPositionY+20), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Down: Down arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 35), Color.Black);
             }
             if (currentState == GameState.Playing)
             {
@@ -161,6 +176,20 @@ namespace pong
                 spriteBatch.Draw(red, redPosition, Color.White);
                 blueLives.Draw(gameTime, spriteBatch);
                 redLives.Draw(gameTime, spriteBatch);
+            }
+            if(currentState == GameState.Win)
+            {
+                if(winner == Winner.Blue)
+                {
+                    spriteBatch.DrawString(StartingTextCentral, "Blue won!", new Vector2(300, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
+                }
+
+                if (winner == Winner.Red)
+                {
+                    spriteBatch.DrawString(StartingTextCentral, "Red won!", new Vector2(300, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
+                }
+
+                spriteBatch.DrawString(StartingTextControls, "Press R to restart the game", new Vector2(280, graphics.PreferredBackBufferHeight/2+20), Color.Black);
             }
             spriteBatch.End();
         }
@@ -228,13 +257,31 @@ namespace pong
                 startBall();
             }
         }
+
+        public void GameOver()
+        {
+            if(blueLives.GetLives <= 0)
+            {
+                winner = Winner.Red;
+                currentState = GameState.Win;
+            }
+
+            if(redLives.GetLives <= 0)
+            {
+                winner = Winner.Blue;
+                currentState = GameState.Win;
+            }
+        }
+
         public void GameRestart()
         {
             if (Keyboard.GetState().IsKeyDown(Keys.R))
             {
+                currentState = GameState.Start;
                 startBall();
                 blueLives.resetLives();
                 redLives.resetLives();
+                winner = Winner.None;
             }
         }
     }
@@ -245,6 +292,11 @@ namespace pong
         public Lives(ContentManager Content, int livesPositionX) {
             lifeSprite = Content.Load<Texture2D>("ball");
             livesPosition.X = livesPositionX;
+        }
+
+        public int GetLives
+        {
+            get { return lives; }
         }
         
         public void takeLive()

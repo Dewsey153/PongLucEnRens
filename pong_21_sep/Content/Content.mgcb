@@ -49,3 +49,17 @@
 /processorParam:TextureFormat=Color
 /build:redPlayer.png
 
+#begin StartingTextCentral.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:StartingTextCentral.spritefont
+
+#begin StartingTextControls.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:StartingTextControls.spritefont
+

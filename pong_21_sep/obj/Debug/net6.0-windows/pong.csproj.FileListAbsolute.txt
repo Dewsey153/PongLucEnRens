@@ -124,3 +124,5 @@ C:\Users\Rens de Wit\Desktop\gameprogrammeren\own_projects\pong\pong_21_sep\obj\
 C:\Users\Rens de Wit\Desktop\gameprogrammeren\own_projects\pong\pong_21_sep\obj\Debug\net6.0-windows\pong.pdb
 C:\Users\Rens de Wit\Desktop\gameprogrammeren\own_projects\pong\pong_21_sep\obj\Debug\net6.0-windows\pong.genruntimeconfig.cache
 C:\Users\Rens de Wit\Desktop\gameprogrammeren\own_projects\pong\pong_21_sep\obj\Debug\net6.0-windows\ref\pong.dll
+C:\Users\Rens de Wit\Desktop\gameprogrammeren\own_projects\pong\pong_21_sep\bin\Debug\net6.0-windows\Content\StartingTextCentral.xnb
+C:\Users\Rens de Wit\Desktop\gameprogrammeren\own_projects\pong\pong_21_sep\bin\Debug\net6.0-windows\Content\StartingTextControls.xnb
