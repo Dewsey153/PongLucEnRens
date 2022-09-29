@@ -12,6 +12,7 @@ using System.Security.Cryptography.Xml;
 using System.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 using Color = Microsoft.Xna.Framework.Color;
+using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace pong
@@ -21,6 +22,8 @@ namespace pong
         KeyboardState currentKBState = Keyboard.GetState();
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
+        Rectangle rectangle;
+        SpriteFont StartingText;
         Texture2D ball;
         Texture2D blue;
         Texture2D red;
@@ -42,6 +45,8 @@ namespace pong
         Random random = new Random();
         Lives redLives;
         Lives blueLives;
+        enum GameState{Start, Playing, Win};
+        GameState currentState;
         
 
 
@@ -60,6 +65,7 @@ namespace pong
 
         protected override void Initialize()
         {
+            currentState = GameState.Start;
             startBall();
             redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 76);
             blueLives = new Lives(Content, 20);
@@ -69,6 +75,7 @@ namespace pong
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            StartingText = spriteBatch.DrawString(File, "Score", new Vector2(100, 100), Color.Black);
             ball = Content.Load<Texture2D>("ball");
             blue = Content.Load<Texture2D>("bluePlayer");
             red = Content.Load<Texture2D>("redPlayer");
@@ -76,55 +83,65 @@ namespace pong
 
         protected override void Update(GameTime gameTime)
         {
-
-            if (Keyboard.GetState().IsKeyDown(Keys.W))
+            if(currentState == GameState.Start)
             {
-                blueY = blueY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                if (Keyboard.GetState().GetPressedKeys().Length > 0)
+                {
+                    currentState = GameState.Playing;
+                }
             }
 
-            if (Keyboard.GetState().IsKeyDown(Keys.S))
+            if (currentState == GameState.Playing)
             {
-                blueY = blueY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                if (Keyboard.GetState().IsKeyDown(Keys.W))
+                {
+                    blueY = blueY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.S))
+                {
+                    blueY = blueY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Up))
+                {
+                    redY = redY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                }
+
+                if (Keyboard.GetState().IsKeyDown(Keys.Down))
+                {
+                    redY = redY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                }
+
+                ballX = ballPosition.X;
+                ballY = ballPosition.Y;
+
+                if (redY <= 0) redY = 0;
+                if (blueY <= 0) blueY = 0;
+                if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
+                if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
+
+                ballHitPaddle();
+                ballMissed();
+                //bounce from walls
+                if (ballY >= graphics.PreferredBackBufferHeight - ball.Height || ballY <= 0) ballDirection.Y = -1 * ballDirection.Y;
+                //move ball and players
+                ballDirection.Normalize();
+                if (ballDirection.X < minBallDirectionX && ballDirection.X > 0) ballDirection.X = minBallDirectionX; // X component ballDirection must be higher than a certain value to make sure the ball doesn't move too slow to the other side
+                if (ballDirection.X > -minBallDirectionX && ballDirection.X < 0) ballDirection.X = -minBallDirectionX;
+                if (ballDirection.Y < minBallDirectionY && ballDirection.Y > 0) ballDirection.Y = minBallDirectionY; // Y component ballDirection must be higher than a certain value to make sure the ball doesn't move in an almost straight line for eternity
+                if (ballDirection.Y > -minBallDirectionY && ballDirection.Y < 0) ballDirection.Y = -minBallDirectionY;
+
+                ballDirection.Normalize();
+                ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection * gameTime.ElapsedGameTime.Milliseconds / 10);
+                bluePosition = new Vector2(0, blueY);
+                redPosition = new Vector2(graphics.PreferredBackBufferWidth - blue.Width, redY);
+                if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                {
+                    startBall();
+                }
+                GameRestart();
             }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Up))
-            {
-                redY = redY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
-            }
-
-            if (Keyboard.GetState().IsKeyDown(Keys.Down))
-            {
-                redY = redY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
-            }
-
-            ballX = ballPosition.X;
-            ballY = ballPosition.Y;
-
-            if (redY <= 0) redY = 0;
-            if (blueY <= 0) blueY = 0;
-            if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
-            if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
-
-            ballHitPaddle();
-            ballMissed();
-            //bounce from walls
-            if (ballY >= graphics.PreferredBackBufferHeight - ball.Height || ballY <= 0) ballDirection.Y = -1 * ballDirection.Y;
-            //move ball and players
-            ballDirection.Normalize();
-            if (ballDirection.X < minBallDirectionX && ballDirection.X > 0) ballDirection.X = minBallDirectionX; // X component ballDirection must be higher than a certain value to make sure the ball doesn't move too slow to the other side
-            if (ballDirection.X > -minBallDirectionX && ballDirection.X < 0) ballDirection.X = -minBallDirectionX;
-            if (ballDirection.Y < minBallDirectionY && ballDirection.Y > 0) ballDirection.Y = minBallDirectionY; // Y component ballDirection must be higher than a certain value to make sure the ball doesn't move in an almost straight line for eternity
-            if (ballDirection.Y > -minBallDirectionY && ballDirection.Y < 0) ballDirection.Y = -minBallDirectionY;
-
-            ballDirection.Normalize();
-            ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection*gameTime.ElapsedGameTime.Milliseconds/10);
-            bluePosition = new Vector2(0, blueY);
-            redPosition = new Vector2(graphics.PreferredBackBufferWidth - blue.Width, redY);
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
-            {
-                startBall();
-            }
-            GameRestart();
 
             base.Update(gameTime);
         }
@@ -133,11 +150,18 @@ namespace pong
         {
             GraphicsDevice.Clear(Color.White);
             spriteBatch.Begin();
-            spriteBatch.Draw(ball, ballPosition, Color.White);
-            spriteBatch.Draw(blue, bluePosition, Color.White);
-            spriteBatch.Draw(red, redPosition, Color.White);
-            blueLives.Draw(gameTime, spriteBatch);
-            redLives.Draw(gameTime, spriteBatch);
+            if (currentState == GameState.Start)
+            {
+
+            }
+            if (currentState == GameState.Playing)
+            {
+                spriteBatch.Draw(ball, ballPosition, Color.White);
+                spriteBatch.Draw(blue, bluePosition, Color.White);
+                spriteBatch.Draw(red, redPosition, Color.White);
+                blueLives.Draw(gameTime, spriteBatch);
+                redLives.Draw(gameTime, spriteBatch);
+            }
             spriteBatch.End();
         }
         
@@ -159,36 +183,34 @@ namespace pong
 
         public void ballHitPaddle()
         {
-            if (ballX <= (bluePosition.X + blue.Width))
+            Rectangle ballRectangle = new Rectangle((int)ballX, (int)ballY, ball.Width, ball.Height);
+            Rectangle redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height);
+            Rectangle blueRectangle = new Rectangle((int)bluePosition.X, (int)bluePosition.Y, blue.Width, blue.Height);
+
+            if (ballRectangle.Intersects(redRectangle))
             {
-                if (ballY + ball.Height >= bluePosition.Y && ballY <= bluePosition.Y + blue.Height)
+                Vector2 Angle = new Vector2(redRectangle.X, ballRectangle.Y - redRectangle.Center.Y);
+                Angle.Normalize();
+                if (Angle.Y != 0 || Angle.X != 0)
                 {
-                    Vector2 Angle = new Vector2(blue.Width, ballY - (bluePosition.Y + blue.Height / 2));
-                    Angle.Normalize();
-                    if (Angle.Y != 0 || Angle.X != 0)
-                    {
-                        ballDirection.X = ballDirection.X * -Angle.X * 3;
-                        ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                    }
-                    else ballDirection.X *= -1;
-                    ballSpeed *= acceleration;
+                    ballDirection.X = ballDirection.X * -Angle.X * 3;
+                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
                 }
+                else ballDirection.X *= -1;
+                ballSpeed *= acceleration;
             }
 
-            else if (ballX + ball.Width >= redPosition.X)
+            else if (ballRectangle.Intersects(blueRectangle))
             {
-                if (ballY + ball.Height >= redPosition.Y && ballY <= redPosition.Y + red.Height)
+                Vector2 Angle = new Vector2(blueRectangle.Width, ballRectangle.Y - blueRectangle.Center.Y);
+                Angle.Normalize();
+                if (Angle.Y != 0 || Angle.X != 0)
                 {
-                    Vector2 Angle = new Vector2(graphics.PreferredBackBufferWidth - red.Width, ballY - (redPosition.Y + red.Height / 2));
-                    Angle.Normalize();
-                    if (Angle.Y != 0 || Angle.X != 0)
-                    {
-                        ballDirection.X = ballDirection.X * -Angle.X * 3;
-                        ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                    }
-                    else ballDirection.X *= -1;
-                    ballSpeed *= acceleration;
+                    ballDirection.X = ballDirection.X * -Angle.X * 3;
+                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
                 }
+                else ballDirection.X *= -1;
+                ballSpeed *= acceleration;
             }
         }
 
@@ -240,15 +262,6 @@ namespace pong
             {
                 spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(i * 20, 0), Color.White);
             }
-            //switch (lives)
-            //{
-            //    case 1:
-            //        spriteBatch.Draw(lifeSprite, life1Position, Color.White);
-            //        break;
-            //    default:
-            //        break;
-            //}
-            
         }
     }
 }
