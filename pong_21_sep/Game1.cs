@@ -37,6 +37,7 @@ namespace pong
         Vector2 ballDirection;
         int blueY = 100;
         int redY = 100;
+        int ballVertical;
         float ballX = 10f;
         float ballY = 10f;
         float ballSpeed;
@@ -199,6 +200,12 @@ namespace pong
             ballSpeed = initialballSpeed;
             ballX = graphics.PreferredBackBufferWidth / 2;
             ballY = graphics.PreferredBackBufferHeight / 2;
+            int ballVerticalTemp = random.Next(-2, 2);
+            if (ballVerticalTemp == 0)
+            {
+                ballVerticalTemp = random.Next(-2, 2);
+            }
+            else ballVertical = ballVerticalTemp;
             int ballSpeedXRandomTemp = random.Next(-4, 4);
             if (ballSpeedXRandomTemp == 0)
             {
@@ -206,7 +213,7 @@ namespace pong
             }
             else ballSpeedXRandom = ballSpeedXRandomTemp;
 
-            ballDirection = new Vector2(ballSpeedXRandom, 5 - Math.Abs(ballSpeedXRandom));
+            ballDirection = new Vector2(ballSpeedXRandom, ballVertical*(5 -Math.Abs(ballSpeedXRandom)));
             ballPosition = new Vector2(ballX, ballY);
         }
 
