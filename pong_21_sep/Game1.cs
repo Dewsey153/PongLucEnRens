@@ -8,6 +8,7 @@ using System;
 using System.Net;
 using System.Reflection.Metadata;
 using System.Resources;
+using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Threading;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
@@ -35,11 +36,17 @@ namespace pong
         Vector2 bluePosition;
         Vector2 redPosition;
         Vector2 ballDirection;
+        Vector2 oldMiddleBall;
+        Vector2 currentMiddleBall;
+        Vector2 ballDifference;
+        Vector2 CheckBall;
         int blueY = 100;
         int redY = 100;
         int ballVertical;
         float ballX = 10f;
         float ballY = 10f;
+        float oldBallX = 10f;
+        float oldBallY = 10f;
         float ballSpeed;
         const float initialballSpeed = 4f;
         const float acceleration = 1.1f;
@@ -54,8 +61,14 @@ namespace pong
         GameState currentState;
         enum Winner { Red, Blue, None};
         Winner winner;
-
-
+        bool RedHit = false;
+        bool BlueHit = false;
+        bool PreviousBlueHit = false;
+        bool PreviousRedHit = false;
+        Rectangle oldBallRectangle;
+        Rectangle currentBallRectangle;
+        Rectangle redRectangle;
+        Rectangle blueRectangle;
 
         static void Main()
         {
@@ -122,6 +135,9 @@ namespace pong
                     redY = redY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
                 }
 
+                oldBallX = ballX;
+                oldBallY = ballY; 
+
                 ballX = ballPosition.X;
                 ballY = ballPosition.Y;
 
@@ -130,7 +146,9 @@ namespace pong
                 if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
                 if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
 
-                ballHitPaddle();
+                checkBallHitPaddle();
+                ballX = ballPosition.X;
+                ballY = ballPosition.Y;
                 ballMissed();
                 //bounce from walls
                 if (ballY >= graphics.PreferredBackBufferHeight - ball.Height || ballY <= 0) ballDirection.Y = -1 * ballDirection.Y;
@@ -177,8 +195,14 @@ namespace pong
                 spriteBatch.Draw(red, redPosition, Color.White);
                 blueLives.Draw(gameTime, spriteBatch);
                 redLives.Draw(gameTime, spriteBatch);
+                spriteBatch.DrawString(StartingTextControls, PreviousRedHit.ToString(), new Vector2(600, 200), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, PreviousBlueHit.ToString(), new Vector2(200, 200), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, ballDifference.ToString(), new Vector2(300, 300), Color.Black);
+
+
+
             }
-            if(currentState == GameState.Win)
+            if (currentState == GameState.Win)
             {
                 if(winner == Winner.Blue)
                 {
@@ -200,65 +224,109 @@ namespace pong
             ballSpeed = initialballSpeed;
             ballX = graphics.PreferredBackBufferWidth / 2;
             ballY = graphics.PreferredBackBufferHeight / 2;
-            int ballVerticalTemp = random.Next(-2, 2);
-            if (ballVerticalTemp == 0)
-            {
-                ballVerticalTemp = random.Next(-2, 2);
-            }
-            else ballVertical = ballVerticalTemp;
-            int ballSpeedXRandomTemp = random.Next(-4, 4);
-            if (ballSpeedXRandomTemp == 0)
-            {
-                ballSpeedXRandomTemp = random.Next(-4, 4);
-            }
-            else ballSpeedXRandom = ballSpeedXRandomTemp;
+            //int ballVerticalTemp = random.Next(-2, 2);
+            //if (ballVerticalTemp == 0)
+            //{
+            //    ballVerticalTemp = random.Next(-2, 2);
+            //}
+            //else ballVertical = ballVerticalTemp;
+            //int ballSpeedXRandomTemp = random.Next(-4, 4);
+            //if (ballSpeedXRandomTemp == 0)
+            //{
+            //    ballSpeedXRandomTemp = random.Next(-4, 4);
+            //}
+            //else ballSpeedXRandom = ballSpeedXRandomTemp;
 
-            ballDirection = new Vector2(ballSpeedXRandom, ballVertical*(5 -Math.Abs(ballSpeedXRandom)));
+            //ballDirection = new Vector2(ballSpeedXRandom, ballVertical*(5 -Math.Abs(ballSpeedXRandom)));
+            ballDirection = new Vector2(1, 0);
             ballPosition = new Vector2(ballX, ballY);
+            PreviousBlueHit = false;
+            PreviousRedHit = false;
+        }
+
+        public void checkBallHitPaddle()
+        {
+            oldBallRectangle = currentBallRectangle;
+            oldMiddleBall = new Vector2(oldBallX, oldBallY);
+            currentBallRectangle = new Rectangle((int)ballX, (int)ballY, ball.Width, ball.Height);
+            currentMiddleBall = new Vector2(ballX, ballY);
+            redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height);
+            blueRectangle = new Rectangle((int)bluePosition.X, (int)bluePosition.Y, blue.Width, blue.Height);
+            CheckBall = Vector2.Zero;
+
+            ballDifference = currentMiddleBall - oldMiddleBall;
+            for(int i = 0; i<50000; i++)
+            {
+                oldMiddleBall += ballDifference * 1/50000;
+
+                if ((redRectangle.Contains(oldMiddleBall)/*||redRectangle.Intersects(currentBallRectangle))*/ && !PreviousRedHit))
+                {
+                    PreviousRedHit = true;
+                    PreviousBlueHit = false;
+                    //if (redRectangle.Contains(oldMiddleBall))
+                        ballPosition = oldMiddleBall;
+                    ballHitPaddle();
+                    break;
+                }
+
+                if ((blueRectangle.Contains(oldMiddleBall)/*||blueRectangle.Intersects(currentBallRectangle))*/ && !PreviousBlueHit))
+                {
+                    PreviousRedHit = false;
+                    PreviousBlueHit = true;
+                    //if (blueRectangle.Contains(oldMiddleBall))
+                        ballPosition = oldMiddleBall;
+                    ballHitPaddle();
+                    break;
+                }
+            }
+
         }
 
         public void ballHitPaddle()
         {
-            Rectangle ballRectangle = new Rectangle((int)ballX, (int)ballY, ball.Width, ball.Height);
-            Rectangle redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height);
-            Rectangle blueRectangle = new Rectangle((int)bluePosition.X, (int)bluePosition.Y, blue.Width, blue.Height);
-
-            if (ballRectangle.Intersects(redRectangle))
-            {
-                Vector2 Angle = new Vector2(redRectangle.X, ballRectangle.Y - redRectangle.Center.Y);
-                Angle.Normalize();
-                if (Angle.Y != 0 || Angle.X != 0)
-                {
-                    ballDirection.X = ballDirection.X * -Angle.X * 3;
-                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                }
-                else ballDirection.X *= -1;
+        //    if (!PreviousRedHit)
+        //    {                
+                //Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y);
+                //Angle.Normalize();
+                //if (Angle.Y != 0 || Angle.X != 0)
+                //{
+                //    ballDirection.X = ballDirection.X * -Angle.X * 3;
+                //    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
+                //}
+                /*else */
+                ballDirection.X *= -1;
                 ballSpeed *= acceleration;
-            }
+                
+            //    RedHit = false;
+            ////}
 
-            else if (ballRectangle.Intersects(blueRectangle))
-            {
-                Vector2 Angle = new Vector2(blueRectangle.Width, ballRectangle.Y - blueRectangle.Center.Y);
-                Angle.Normalize();
-                if (Angle.Y != 0 || Angle.X != 0)
-                {
-                    ballDirection.X = ballDirection.X * -Angle.X * 3;
-                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                }
-                else ballDirection.X *= -1;
-                ballSpeed *= acceleration;
-            }
+
+            //else if (!PreviousBlueHit)
+            //{
+            //    //Vector2 Angle = new Vector2(blueRectangle.Width, currentBallRectangle.Y - blueRectangle.Center.Y);
+            //    //Angle.Normalize();
+            //    //if (Angle.Y != 0 || Angle.X != 0)
+            //    //{
+            //    //    ballDirection.X = ballDirection.X * -Angle.X * 3;
+            //    //    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
+            //    //}
+            //    /*else*/ 
+            //    ballDirection.X *= -1;
+            //    ballSpeed *= acceleration;
+                
+            //    BlueHit = false;
+            //}
         }
 
-        public void ballMissed()
+public void ballMissed()
         {
-            if (ballX < 0)
+            if (ballX < -20)
             {
                 blueLives.takeLive();
                 startBall();
             }
 
-            if (ballX > graphics.PreferredBackBufferWidth)
+            if (ballX > graphics.PreferredBackBufferWidth+20)
             {
                 redLives.takeLive();
                 startBall();
