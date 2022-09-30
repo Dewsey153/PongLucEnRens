@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Audio;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -23,12 +24,14 @@ namespace pong
         KeyboardState currentKBState = Keyboard.GetState();
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        Rectangle rectangle;
         SpriteFont StartingTextCentral;
         SpriteFont StartingTextControls;
+        SoundEffect WinSoundEffect;
+        SoundEffect HitSound;
+        SoundEffect MissedSound;
         float ControlsPositionY = 20f;
         float Controls1PostionX = 20f;
-        float Controls2PositionX = 620f;
+        float Controls2PositionX = 560f;
         Texture2D ball;
         Texture2D blue;
         Texture2D red;
@@ -61,8 +64,6 @@ namespace pong
         GameState currentState;
         enum Winner { Red, Blue, None };
         Winner winner;
-        bool RedHit = false;
-        bool BlueHit = false;
         bool PreviousBlueHit = false;
         bool PreviousRedHit = false;
         Rectangle oldBallRectangle;
@@ -88,7 +89,7 @@ namespace pong
             currentState = GameState.Start;
             winner = Winner.None;
             startBall();
-            redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 76);
+            redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 116);
             blueLives = new Lives(Content, 20);
             base.Initialize();
         }
@@ -101,14 +102,18 @@ namespace pong
             ball = Content.Load<Texture2D>("ball");
             blue = Content.Load<Texture2D>("bluePlayer");
             red = Content.Load<Texture2D>("redPlayer");
+            WinSoundEffect = Content.Load<SoundEffect>("WinSoundEffect");
+            HitSound = Content.Load<SoundEffect>("HitSoundEffect");
+            MissedSound = Content.Load<SoundEffect>("MissedSound");
         }
 
         protected override void Update(GameTime gameTime)
         {
             if (currentState == GameState.Start)
             {
-                if (Keyboard.GetState().GetPressedKeys().Length > 0)
+                if (Keyboard.GetState().GetPressedKeys().Length > 0 && !Keyboard.GetState().IsKeyDown(Keys.R))
                 {
+                    HitSound.Play(0.1f, 0, 0);
                     currentState = GameState.Playing;
                 }
             }
@@ -202,16 +207,17 @@ namespace pong
 
 
             }
+
             if (currentState == GameState.Win)
             {
                 if (winner == Winner.Blue)
                 {
-                    spriteBatch.DrawString(StartingTextCentral, "Blue won!", new Vector2(300, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
+                    spriteBatch.DrawString(StartingTextCentral, "Player One won!", new Vector2(250, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 }
 
                 if (winner == Winner.Red)
                 {
-                    spriteBatch.DrawString(StartingTextCentral, "Red won!", new Vector2(300, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
+                    spriteBatch.DrawString(StartingTextCentral, "Player Two won!", new Vector2(250, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 }
 
                 spriteBatch.DrawString(StartingTextControls, "Press R to restart the game", new Vector2(280, graphics.PreferredBackBufferHeight / 2 + 20), Color.Black);
@@ -279,76 +285,84 @@ namespace pong
                 }
             }
         }
-            void ballHitPaddle()
+        void ballHitPaddle()
+        {
+
+            if (PreviousRedHit)
             {
-                if (PreviousRedHit)
+                HitSound.Play(0.1f, 0, 1.0f);
+                Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y);
+                Angle.Normalize();
+                if (Angle.Y != 0 || Angle.X != 0)
                 {
-                    Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y);
-                    Angle.Normalize();
-                    if (Angle.Y != 0 || Angle.X != 0)
-                    {
-                        ballDirection.X = ballDirection.X * -Angle.X * 3;
-                        ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                    }
-                    else
-                        ballDirection.X *= -1;
-                    ballSpeed *= acceleration;
+                    ballDirection.X = ballDirection.X * -Angle.X * 3;
+                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
                 }
-
-
-                else if (PreviousBlueHit)
-                {
-                    Vector2 Angle = new Vector2(blueRectangle.Width, currentBallRectangle.Y - blueRectangle.Center.Y);
-                    Angle.Normalize();
-                    if (Angle.Y != 0 || Angle.X != 0)
-                    {
-                        ballDirection.X = ballDirection.X * -Angle.X * 3;
-                        ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                    }
-                    else
-                        ballDirection.X *= -1;
+                else
+                    ballDirection.X *= -1;
                 ballSpeed *= acceleration;
-                }
             }
 
-            private void GameOver()
+
+            else if (PreviousBlueHit)
             {
-                if (blueLives.GetLives <= 0)
+                HitSound.Play(0.1f, 0, -1.0f);
+                Vector2 Angle = new Vector2(blueRectangle.Width, currentBallRectangle.Y - blueRectangle.Center.Y);
+                Angle.Normalize();
+                if (Angle.Y != 0 || Angle.X != 0)
                 {
-                    winner = Winner.Red;
-                    currentState = GameState.Win;
+                    ballDirection.X = ballDirection.X * -Angle.X * 3;
+                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
                 }
-
-                if (redLives.GetLives <= 0)
-                {
-                    winner = Winner.Blue;
-                    currentState = GameState.Win;
-                }
+                else
+                    ballDirection.X *= -1;
+                ballSpeed *= acceleration;
             }
+        }
 
-            private void GameRestart()
+        private void GameOver()
+        {
+            if (blueLives.GetLives <= 0)
             {
-                if (Keyboard.GetState().IsKeyDown(Keys.R))
-                {
-                    currentState = GameState.Start;
-                    startBall();
-                    blueLives.resetLives();
-                    redLives.resetLives();
-                    winner = Winner.None;
-                }
+                WinSoundEffect.Play(1.0f, 0, 0);
+                winner = Winner.Red;
+                currentState = GameState.Win;
             }
-        
+
+            if (redLives.GetLives <= 0)
+            {
+                WinSoundEffect.Play(1.0f, 0, 0);
+                winner = Winner.Blue;
+                currentState = GameState.Win;
+            }
+        }
+
+        private void GameRestart()
+        {
+
+            if (Keyboard.GetState().IsKeyDown(Keys.R))
+            {
+                currentState = GameState.Start;
+                startBall();
+                blueLives.resetLives();
+                redLives.resetLives();
+                winner = Winner.None;
+            }
+        }
+
 
         private void ballMissed()
         {
             if (ballX < -20)
             {
+                MissedSound.Play(0.2f, 0, 0);
                 blueLives.takeLive();
                 startBall();
             }
 
             if (ballX > graphics.PreferredBackBufferWidth + 20)
             {
+                MissedSound.Play(0.2f,0,0);
                 redLives.takeLive();
                 startBall();
             }
@@ -357,7 +371,7 @@ namespace pong
     }
     class Lives
     {
-        int lives = 3;
+        int lives = 5;
         Texture2D lifeSprite;
         Vector2 livesPosition = new Vector2(20, 20);
         public Lives(ContentManager Content, int livesPositionX)
@@ -377,7 +391,7 @@ namespace pong
         }
         public void resetLives()
         {
-            lives = 3;
+            lives = 5;
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
