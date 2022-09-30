@@ -57,9 +57,9 @@ namespace pong
         Random random = new Random();
         Lives redLives;
         Lives blueLives;
-        enum GameState{Start, Playing, Win};
+        enum GameState { Start, Playing, Win };
         GameState currentState;
-        enum Winner { Red, Blue, None};
+        enum Winner { Red, Blue, None };
         Winner winner;
         bool RedHit = false;
         bool BlueHit = false;
@@ -105,7 +105,7 @@ namespace pong
 
         protected override void Update(GameTime gameTime)
         {
-            if(currentState == GameState.Start)
+            if (currentState == GameState.Start)
             {
                 if (Keyboard.GetState().GetPressedKeys().Length > 0)
                 {
@@ -136,7 +136,7 @@ namespace pong
                 }
 
                 oldBallX = ballX;
-                oldBallY = ballY; 
+                oldBallY = ballY;
 
                 ballX = ballPosition.X;
                 ballY = ballPosition.Y;
@@ -180,12 +180,12 @@ namespace pong
             spriteBatch.Begin();
             if (currentState == GameState.Start)
             {
-                spriteBatch.DrawString(StartingTextCentral, "Start the game by pressing any button", new Vector2(20, graphics.PreferredBackBufferHeight/2-30), Color.Black);
+                spriteBatch.DrawString(StartingTextCentral, "Start the game by pressing any button", new Vector2(20, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PostionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player Two", new Vector2(Controls2PositionX, ControlsPositionY), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PostionX, ControlsPositionY+20), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PostionX, ControlsPositionY+35), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Up: Up arrow key", new Vector2(Controls2PositionX, ControlsPositionY+20), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PostionX, ControlsPositionY + 20), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PostionX, ControlsPositionY + 35), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Up: Up arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 20), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Down: Down arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 35), Color.Black);
             }
             if (currentState == GameState.Playing)
@@ -204,7 +204,7 @@ namespace pong
             }
             if (currentState == GameState.Win)
             {
-                if(winner == Winner.Blue)
+                if (winner == Winner.Blue)
                 {
                     spriteBatch.DrawString(StartingTextCentral, "Blue won!", new Vector2(300, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 }
@@ -214,31 +214,30 @@ namespace pong
                     spriteBatch.DrawString(StartingTextCentral, "Red won!", new Vector2(300, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 }
 
-                spriteBatch.DrawString(StartingTextControls, "Press R to restart the game", new Vector2(280, graphics.PreferredBackBufferHeight/2+20), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Press R to restart the game", new Vector2(280, graphics.PreferredBackBufferHeight / 2 + 20), Color.Black);
             }
             spriteBatch.End();
         }
-        
+
         public void startBall()
         {
             ballSpeed = initialballSpeed;
             ballX = graphics.PreferredBackBufferWidth / 2;
             ballY = graphics.PreferredBackBufferHeight / 2;
-            //int ballVerticalTemp = random.Next(-2, 2);
-            //if (ballVerticalTemp == 0)
-            //{
-            //    ballVerticalTemp = random.Next(-2, 2);
-            //}
-            //else ballVertical = ballVerticalTemp;
-            //int ballSpeedXRandomTemp = random.Next(-4, 4);
-            //if (ballSpeedXRandomTemp == 0)
-            //{
-            //    ballSpeedXRandomTemp = random.Next(-4, 4);
-            //}
-            //else ballSpeedXRandom = ballSpeedXRandomTemp;
+            int ballVerticalTemp = random.Next(-2, 2);
+            if (ballVerticalTemp == 0)
+            {
+                ballVerticalTemp = random.Next(-2, 2);
+            }
+            else ballVertical = ballVerticalTemp;
+            int ballSpeedXRandomTemp = random.Next(-4, 4);
+            if (ballSpeedXRandomTemp == 0)
+            {
+                ballSpeedXRandomTemp = random.Next(-4, 4);
+            }
+            else ballSpeedXRandom = ballSpeedXRandomTemp;
 
-            //ballDirection = new Vector2(ballSpeedXRandom, ballVertical*(5 -Math.Abs(ballSpeedXRandom)));
-            ballDirection = new Vector2(1, 0);
+            ballDirection = new Vector2(ballSpeedXRandom, ballVertical * (5 - Math.Abs(ballSpeedXRandom)));
             ballPosition = new Vector2(ballX, ballY);
             PreviousBlueHit = false;
             PreviousRedHit = false;
@@ -255,70 +254,92 @@ namespace pong
             CheckBall = Vector2.Zero;
 
             ballDifference = currentMiddleBall - oldMiddleBall;
-            for(int i = 0; i<50000; i++)
+            for (int i = 0; i < 50000; i++)
             {
-                oldMiddleBall += ballDifference * 1/50000;
+                oldMiddleBall += ballDifference * 1 / 50000;
 
-                if ((redRectangle.Contains(oldMiddleBall)/*||redRectangle.Intersects(currentBallRectangle))*/ && !PreviousRedHit))
+                if ((redRectangle.Contains(oldMiddleBall) || redRectangle.Intersects(currentBallRectangle)) && !PreviousRedHit)
                 {
                     PreviousRedHit = true;
                     PreviousBlueHit = false;
-                    //if (redRectangle.Contains(oldMiddleBall))
+                    if (redRectangle.Contains(oldMiddleBall))
                         ballPosition = oldMiddleBall;
                     ballHitPaddle();
                     break;
                 }
 
-                if ((blueRectangle.Contains(oldMiddleBall)/*||blueRectangle.Intersects(currentBallRectangle))*/ && !PreviousBlueHit))
+                if ((blueRectangle.Contains(oldMiddleBall) || blueRectangle.Intersects(currentBallRectangle)) && !PreviousBlueHit)
                 {
                     PreviousRedHit = false;
                     PreviousBlueHit = true;
-                    //if (blueRectangle.Contains(oldMiddleBall))
+                    if (blueRectangle.Contains(oldMiddleBall))
                         ballPosition = oldMiddleBall;
                     ballHitPaddle();
                     break;
                 }
             }
-
         }
+            void ballHitPaddle()
+            {
+                if (PreviousRedHit)
+                {
+                    Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y);
+                    Angle.Normalize();
+                    if (Angle.Y != 0 || Angle.X != 0)
+                    {
+                        ballDirection.X = ballDirection.X * -Angle.X * 3;
+                        ballDirection.Y = ballDirection.Y * Angle.Y * 3;
+                    }
+                    else
+                        ballDirection.X *= -1;
+                    ballSpeed *= acceleration;
+                }
 
-        public void ballHitPaddle()
-        {
-        //    if (!PreviousRedHit)
-        //    {                
-                //Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y);
-                //Angle.Normalize();
-                //if (Angle.Y != 0 || Angle.X != 0)
-                //{
-                //    ballDirection.X = ballDirection.X * -Angle.X * 3;
-                //    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-                //}
-                /*else */
-                ballDirection.X *= -1;
+
+                else if (PreviousBlueHit)
+                {
+                    Vector2 Angle = new Vector2(blueRectangle.Width, currentBallRectangle.Y - blueRectangle.Center.Y);
+                    Angle.Normalize();
+                    if (Angle.Y != 0 || Angle.X != 0)
+                    {
+                        ballDirection.X = ballDirection.X * -Angle.X * 3;
+                        ballDirection.Y = ballDirection.Y * Angle.Y * 3;
+                    }
+                    else
+                        ballDirection.X *= -1;
                 ballSpeed *= acceleration;
-                
-            //    RedHit = false;
-            ////}
+                }
+            }
 
+            private void GameOver()
+            {
+                if (blueLives.GetLives <= 0)
+                {
+                    winner = Winner.Red;
+                    currentState = GameState.Win;
+                }
 
-            //else if (!PreviousBlueHit)
-            //{
-            //    //Vector2 Angle = new Vector2(blueRectangle.Width, currentBallRectangle.Y - blueRectangle.Center.Y);
-            //    //Angle.Normalize();
-            //    //if (Angle.Y != 0 || Angle.X != 0)
-            //    //{
-            //    //    ballDirection.X = ballDirection.X * -Angle.X * 3;
-            //    //    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
-            //    //}
-            //    /*else*/ 
-            //    ballDirection.X *= -1;
-            //    ballSpeed *= acceleration;
-                
-            //    BlueHit = false;
-            //}
-        }
+                if (redLives.GetLives <= 0)
+                {
+                    winner = Winner.Blue;
+                    currentState = GameState.Win;
+                }
+            }
 
-public void ballMissed()
+            private void GameRestart()
+            {
+                if (Keyboard.GetState().IsKeyDown(Keys.R))
+                {
+                    currentState = GameState.Start;
+                    startBall();
+                    blueLives.resetLives();
+                    redLives.resetLives();
+                    winner = Winner.None;
+                }
+            }
+        
+
+        private void ballMissed()
         {
             if (ballX < -20)
             {
@@ -326,45 +347,21 @@ public void ballMissed()
                 startBall();
             }
 
-            if (ballX > graphics.PreferredBackBufferWidth+20)
+            if (ballX > graphics.PreferredBackBufferWidth + 20)
             {
                 redLives.takeLive();
                 startBall();
             }
         }
 
-        public void GameOver()
-        {
-            if(blueLives.GetLives <= 0)
-            {
-                winner = Winner.Red;
-                currentState = GameState.Win;
-            }
-
-            if(redLives.GetLives <= 0)
-            {
-                winner = Winner.Blue;
-                currentState = GameState.Win;
-            }
-        }
-
-        public void GameRestart()
-        {
-            if (Keyboard.GetState().IsKeyDown(Keys.R))
-            {
-                currentState = GameState.Start;
-                startBall();
-                blueLives.resetLives();
-                redLives.resetLives();
-                winner = Winner.None;
-            }
-        }
     }
-    class Lives {
+    class Lives
+    {
         int lives = 3;
         Texture2D lifeSprite;
         Vector2 livesPosition = new Vector2(20, 20);
-        public Lives(ContentManager Content, int livesPositionX) {
+        public Lives(ContentManager Content, int livesPositionX)
+        {
             lifeSprite = Content.Load<Texture2D>("ball");
             livesPosition.X = livesPositionX;
         }
@@ -373,7 +370,7 @@ public void ballMissed()
         {
             get { return lives; }
         }
-        
+
         public void takeLive()
         {
             lives--;
@@ -385,7 +382,7 @@ public void ballMissed()
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
-            for(int i = 0; i < lives; i++)
+            for (int i = 0; i < lives; i++)
             {
                 spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(i * 20, 0), Color.White);
             }
