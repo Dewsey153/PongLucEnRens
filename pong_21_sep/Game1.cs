@@ -12,8 +12,10 @@ using System.Resources;
 using System.Security.Cryptography.X509Certificates;
 using System.Security.Cryptography.Xml;
 using System.Threading;
+using System.Windows.Forms;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
 using Color = Microsoft.Xna.Framework.Color;
+using Keys = Microsoft.Xna.Framework.Input.Keys;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
@@ -40,33 +42,30 @@ namespace pong
         Vector2 ballDirection; // Normalized updated vector which points to direction the ball is going in 
         Vector2 oldMiddleBall; // Vector which tells where the ball was in the last frame. This is compared with current position to determine path of ball when it goes fast
         Vector2 ballDifference; // Vector made by comparing current en old middle ball, to determine path between frames
-        int blueY = 100;
-        int redY = 100;
-        int ballVertical;
-        float currentBallX = 10f;
-        float currentBallY = 10f;
-        float oldBallX = 10f;
-        float oldBallY = 10f;
-        float ballSpeed;
-        const float initialballSpeed = 4f;
-        const float acceleration = 1.1f;
-        int ballSpeedXRandom = 3;
-        int playerSpeed = 10;
-        float minBallDirectionX = 0.3f;
-        float minBallDirectionY = 0.2f;
+        int ballVertical; // Holds vertical component of vector ball at random start
+        float currentBallX; // Holds current X coordinate of ball to copy to oldBallX
+        float currentBallY; // Holds current Y coordinate of ball to copy to oldBallY
+        float oldBallX; // Holds X coordinate of ball from previous frame
+        float oldBallY; // Holds Y coordinate of ball from previous frame
+        float ballSpeed; // Holds current speed of ball
+        const float initialballSpeed = 4f; // Constant variable for speed in which ball starts
+        const float acceleration = 1.1f; // Constand variable for the acceleration of the ball when it hits a paddle
+        int ballSpeedXRandom = 3; // Is later changed into a random int for the X component of the ballDirection at the start
+        int playerSpeed = 10; // For the speed in which players move their paddles
+        const float minBallDirectionX = 0.3f; // minimal value of the x component of ballDirection, to make sure the ball doesn't take too long to get to the other side
+        const float minBallDirectionY = 0.2f; // minimal value of the y component of ballDirection, to make sure the ball doesn't go to the other side too directly
         Random random = new Random();
         Lives redLives;
         Lives blueLives;
-        enum GameState { Start, Playing, Win };
-        GameState currentState;
-        enum Winner { Red, Blue, None };
-        Winner winner;
-        bool PreviousBlueHit = false;
-        bool PreviousRedHit = false;
-        Rectangle oldBallRectangle;
-        Rectangle currentBallRectangle;
-        Rectangle redRectangle;
-        Rectangle blueRectangle;
+        enum GameState { Start, Playing, Win }; // Enumerated type indicates the different gamestates possible
+        GameState currentState; // Contains the word for the current gamestate
+        enum Winner { Red, Blue, None }; // Enumeratef type tells if there is a winner and who that is
+        Winner winner; // Contains name of winner (red, blue or none)
+        bool PreviousBlueHit = false; // boolean to make sure red and blue take turns in hitting the ball
+        bool PreviousRedHit = false; // boolean to make sure red and blue take turns in hitting the ball
+        Rectangle currentBallRectangle; // Rectangle around the ball
+        Rectangle blueRectangle; // rectangle around player one
+        Rectangle redRectangle; // rectangle around player two
 
         static void Main()
         {
@@ -83,18 +82,19 @@ namespace pong
 
         protected override void Initialize()
         {
-            currentState = GameState.Start;
-            winner = Winner.None;
-            bluePosition.X = 0;
-            bluePosition.Y = graphics.PreferredBackBufferHeight/2;
-            startBall();
-            redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 116);
-            blueLives = new Lives(Content, 20);
+            currentState = GameState.Start; // Game starts with gamestate 'Start'
+            winner = Winner.None; // There is no winner when the game just started
+            bluePosition = new Vector2(0, 200); // Start blue paddle at left side of screen at about the middle
+            redPosition = new Vector2(graphics.PreferredBackBufferWidth - 16, 200); // Start red paddle at right side of screen at about the middle
+            blueLives = new Lives(Content, 20); // Call class Lives for player one and set x coordinate so that all lives are visible on screen
+            redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 116); // Call class Lives for player two and set x coordinate so that all lives are visible on screen
+            startBall(); // Set the ball to be ready behind the start screen
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
+            // Load all fonts, sprites and sound effects in the correct variables
             spriteBatch = new SpriteBatch(GraphicsDevice);
             StartingTextCentral = Content.Load<SpriteFont>("StartingTextCentral");
             StartingTextControls = Content.Load<SpriteFont>("StartingTextControls");
@@ -109,81 +109,76 @@ namespace pong
         protected override void Update(GameTime gameTime)
         {
             if (currentState == GameState.Start)
-            {
+            {   // Play sound and set gamestate to 'playing' if any button other than R is pressed. R is an exception, because the sound played multiple times at the same time if R was continuously pressed at the start screen
                 if (Keyboard.GetState().GetPressedKeys().Length > 0 && !Keyboard.GetState().IsKeyDown(Keys.R))
                 {
-                    HitSound.Play(0.1f, 0, 0);
-                    currentState = GameState.Playing;
+                    HitSound.Play(0.1f, 0, 0); // Play hitsound at 10% of original volume
+                    currentState = GameState.Playing; // Change gamestate to Playing
                 }
             }
 
             if (currentState == GameState.Playing)
-            {
+            { // This is the code that is only active if the actual game is played
                 if (Keyboard.GetState().IsKeyDown(Keys.W))
-                {
-                    blueY = blueY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                { // Move player one up if W is pressed
+                    bluePosition.Y = bluePosition.Y - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
                 }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.S))
-                {
-                    blueY = blueY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                { // Move player one down if S is pressed
+                    bluePosition.Y = bluePosition.Y + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
                 }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                {
-                    redY = redY - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                { // Move player two up if the up key is pressed
+                    redPosition.Y = redPosition.Y - playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
                 }
 
                 if (Keyboard.GetState().IsKeyDown(Keys.Down))
-                {
-                    redY = redY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
+                { // Move player two down if the down key is pressed
+                    redPosition.Y = redPosition.Y + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
                 }
 
+                // Copy the previous gotten position of the ball to oldBall variables and get new position ball. This way, the positions can be compared
                 oldBallX = currentBallX;
                 oldBallY = currentBallY;
 
                 currentBallX = ballPosition.X;
                 currentBallY = ballPosition.Y;
 
-                if (redY <= 0) redY = 0;
-                if (blueY <= 0) blueY = 0;
-                if (redY >= graphics.PreferredBackBufferHeight - red.Height) redY = graphics.PreferredBackBufferHeight - red.Height;
-                if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
+                //Make sure the players can not move beyond the screen
+                if (redPosition.Y <= 0) redPosition.Y = 0;
+                if (bluePosition.Y <= 0) bluePosition.Y = 0;
+                if (redPosition.Y >= graphics.PreferredBackBufferHeight - red.Height) redPosition.Y = graphics.PreferredBackBufferHeight - red.Height;
+                if (bluePosition.Y >= graphics.PreferredBackBufferHeight - blue.Height) bluePosition.Y = graphics.PreferredBackBufferHeight - blue.Height;
 
-                checkBallHitPaddle();
-                currentBallX = ballPosition.X;
-                currentBallY = ballPosition.Y;
-                ballMissed();
-                //bounce from walls
+                checkBallHitPaddle(); // Checks if the ball hits one of the paddles
+                ballMissed(); // Checks if the ball is missed and resets rally
+                // Bounce the ball from the top and bottom of the screen
                 if (ballPosition.Y >= graphics.PreferredBackBufferHeight - ball.Height || ballPosition.Y <= 0) ballDirection.Y = -1 * ballDirection.Y;
-                //move ball and players
-                ballDirection.Normalize();
+                ballDirection.Normalize(); // Normalize vector direction ball to make sure it is always between one and zero and can be checked
                 if (ballDirection.X < minBallDirectionX && ballDirection.X > 0) ballDirection.X = minBallDirectionX; // X component ballDirection must be higher than a certain value to make sure the ball doesn't move too slow to the other side
                 if (ballDirection.X > -minBallDirectionX && ballDirection.X < 0) ballDirection.X = -minBallDirectionX;
                 if (ballDirection.Y < minBallDirectionY && ballDirection.Y > 0) ballDirection.Y = minBallDirectionY; // Y component ballDirection must be higher than a certain value to make sure the ball doesn't move in an almost straight line for eternity
                 if (ballDirection.Y > -minBallDirectionY && ballDirection.Y < 0) ballDirection.Y = -minBallDirectionY;
 
-                ballDirection.Normalize();
-                ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection * gameTime.ElapsedGameTime.Milliseconds / 10);
-                bluePosition = new Vector2(0, blueY);
-                redPosition = new Vector2(graphics.PreferredBackBufferWidth - blue.Width, redY);
-                if (Keyboard.GetState().IsKeyDown(Keys.Space))
-                {
-                    startBall();
-                }
-                GameOver();
+                ballDirection.Normalize(); // Normalize vector ballDirection a second time to make sure it does not affect speed op ball
+                ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection * gameTime.ElapsedGameTime.Milliseconds / 10); // add velocity to the position of the ball
+                
+                GameOver(); // Check if a player has zero lives and act on it
             }
 
-            GameRestart();
+            GameRestart(); // Always check if the R button is pressed for a restart of the game
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.White);
+            GraphicsDevice.Clear(Color.White); // Clear screen to be able to draw on it
             spriteBatch.Begin();
             if (currentState == GameState.Start)
             {
+                // Add text at the starting screen with controls for both players and instuctions to start the game
                 spriteBatch.DrawString(StartingTextCentral, "Start the game by pressing any button", new Vector2(20, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PositionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player Two", new Vector2(Controls2PositionX, ControlsPositionY), Color.Black);
@@ -194,14 +189,13 @@ namespace pong
             }
             if (currentState == GameState.Playing)
             {
+                // Draw two paddles, ball and the amount of lives left on the screen if the game is being played
                 spriteBatch.Draw(ball, ballPosition, Color.White);
                 spriteBatch.Draw(blue, bluePosition, Color.White);
                 spriteBatch.Draw(red, redPosition, Color.White);
                 blueLives.Draw(gameTime, spriteBatch);
                 redLives.Draw(gameTime, spriteBatch);
             }
-
-            // Rens tot hier
 
             if (currentState == GameState.Win)
             {
@@ -245,7 +239,6 @@ namespace pong
 
         public void checkBallHitPaddle()
         {
-            oldBallRectangle = currentBallRectangle;
             oldMiddleBall = new Vector2(oldBallX, oldBallY);
             currentBallRectangle = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ball.Width, ball.Height);
             redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height);
