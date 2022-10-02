@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Media;
 using SharpDX;
 using System;
+using System.CodeDom;
 using System.Net;
 using System.Reflection.Metadata;
 using System.Resources;
@@ -32,7 +33,7 @@ namespace pong
         SoundEffect MissedSound; // Sound effect if ball missed by paddle
         const float ControlsPositionY = 20f; // Height of controls in starting screen
         const float Controls1PositionX = 20f; // x coordinate of controls player one starting screen
-        const float Controls2PositionX = 560f; // x coordinate of controls player two starting screen
+        const float Controls2PositionX = 520f; // x coordinate of controls player two starting screen
         Texture2D ball; // Sprite ball
         Texture2D blue; // Sprite player one (blue paddle)
         Texture2D red; // Sprite player two (red paddle)
@@ -179,13 +180,13 @@ namespace pong
             if (currentState == GameState.Start)
             {
                 // Add text at the starting screen with controls for both players and instuctions to start the game
-                spriteBatch.DrawString(StartingTextCentral, "Start the game by pressing any button", new Vector2(20, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
+                spriteBatch.DrawString(StartingTextCentral, "Press any button to begin!", new Vector2(120, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PositionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player Two", new Vector2(Controls2PositionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PositionX, ControlsPositionY + 20), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PositionX, ControlsPositionY + 35), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PositionX, ControlsPositionY + 40), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Up: Up arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 20), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Down: Down arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 35), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Down: Down arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 40), Color.Black);
             }
             if (currentState == GameState.Playing)
             {
@@ -196,69 +197,69 @@ namespace pong
                 blueLives.Draw(gameTime, spriteBatch);
                 redLives.Draw(gameTime, spriteBatch);
             }
-
-            if (currentState == GameState.Win)
+            
+            if (currentState == GameState.Win)//Runs when Gamestate becomes 'Win'
             {
-                if (winner == Winner.Blue)
+                if (winner == Winner.Blue) //Displays message below when Blue Player wins
                 {
                     spriteBatch.DrawString(StartingTextCentral, "Player One won!", new Vector2(250, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 }
 
-                if (winner == Winner.Red)
+                if (winner == Winner.Red) //Displays message below when Red Player wins
                 {
                     spriteBatch.DrawString(StartingTextCentral, "Player Two won!", new Vector2(250, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 }
-
+                //Displays restart message beneath other message
                 spriteBatch.DrawString(StartingTextControls, "Press R to restart the game", new Vector2(280, graphics.PreferredBackBufferHeight / 2 + 20), Color.Black);
             }
             spriteBatch.End();
         }
 
-        public void startBall()
+        public void startBall() // Called when ball needs to take default position and speed
         {
             ballSpeed = initialballSpeed;
             ballPosition.X = graphics.PreferredBackBufferWidth / 2;
             ballPosition.Y = graphics.PreferredBackBufferHeight / 2;
-            int ballVerticalTemp = random.Next(-2, 2);
-            if (ballVerticalTemp == 0)
+            int ballVerticalTemp = random.Next(-2, 2); // Generates a temporary number which will determine whether a ball starts by going up or down.
+            if (ballVerticalTemp == 0) // Vertical ball speed may not become zero
             {
                 ballVerticalTemp = random.Next(-2, 2);
             }
-            else ballVertical = ballVerticalTemp;
-            int ballSpeedXRandomTemp = random.Next(-4, 4);
-            if (ballSpeedXRandomTemp == 0)
+            else ballVertical = ballVerticalTemp; //Vertical ballspeed given definitve number
+            int ballSpeedXRandomTemp = random.Next(-4, 4); // Generates a temporary number to determine horizontal direction
+            if (ballSpeedXRandomTemp == 0) // Horizontal direction can not be 0
             {
                 ballSpeedXRandomTemp = random.Next(-4, 4);
             }
-            else ballSpeedXRandom = ballSpeedXRandomTemp;
+            else ballSpeedXRandom = ballSpeedXRandomTemp; // Horizontal direction given definitive number
 
-            ballDirection = new Vector2(ballSpeedXRandom, ballVertical * (5 - Math.Abs(ballSpeedXRandom)));
-            PreviousBlueHit = false;
+            ballDirection = new Vector2(ballSpeedXRandom, ballVertical * (5 - Math.Abs(ballSpeedXRandom))); //Previous ball directions used to define balldirection vector
+            PreviousBlueHit = false; //Booleans made false to allow the ball to bounce of any of the two paddles.
             PreviousRedHit = false;
         }
 
-        public void checkBallHitPaddle()
+        public void checkBallHitPaddle() // This method checks if the ball has hit the paddle
         {
-            oldMiddleBall = new Vector2(oldBallX, oldBallY);
-            currentBallRectangle = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ball.Width, ball.Height);
-            redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height);
-            blueRectangle = new Rectangle((int)bluePosition.X, (int)bluePosition.Y, blue.Width, blue.Height);
+            oldMiddleBall = new Vector2(oldBallX, oldBallY); //The old position of the ball stored in vector
+            currentBallRectangle = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ball.Width, ball.Height); //Ball given rectangle
+            redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height); //Red player given rectangle
+            blueRectangle = new Rectangle((int)bluePosition.X, (int)bluePosition.Y, blue.Width, blue.Height); // Blue player given rectangle
 
-            ballDifference = ballPosition - oldMiddleBall;
-            for (int i = 0; i < 100; i++)
+            ballDifference = ballPosition - oldMiddleBall; // Calculates the difference between the old and new position of the ball and stores it in a variable
+            for (int i = 0; i < 100; i++) //Loop that checks if ball hit paddle, checked 100 times per frame
             {
-                oldMiddleBall += ballDifference * 0.01f;
+                oldMiddleBall += ballDifference * 0.01f; //for every instance of the loop a position between the old and new positions of the ball is chosen
 
-                if ((redRectangle.Contains(oldMiddleBall) || redRectangle.Intersects(currentBallRectangle)) && !PreviousRedHit)
+                if ((redRectangle.Contains(oldMiddleBall) || redRectangle.Intersects(currentBallRectangle)) && !PreviousRedHit) //if the previously chosen position is in the rectangle of the paddle and the paddle has not been hit yet
                 {
-                    PreviousRedHit = true;
-                    PreviousBlueHit = false;
-                    if (redRectangle.Contains(oldMiddleBall))
+                    PreviousRedHit = true; //This paddle has been hit
+                    PreviousBlueHit = false; //The other paddle has not been hit just now
+                    if (redRectangle.Contains(oldMiddleBall)) //returns ball to the front of the paddle where it hit
                         ballPosition = oldMiddleBall;
-                    ballHitPaddle();
-                    break;
+                    ballHitPaddle(); //calls the method that changes the direction of the ball
+                    break; // ends all instances of this loop
                 }
-
+                //the other if statement performs the same instructions for the other paddle
                 if ((blueRectangle.Contains(oldMiddleBall) || blueRectangle.Intersects(currentBallRectangle)) && !PreviousBlueHit)
                 {
                     PreviousRedHit = false;
@@ -270,26 +271,26 @@ namespace pong
                 }
             }
         }
-        void ballHitPaddle()
+        void ballHitPaddle() // Called when ball has hit a paddle
         {
 
-            if (PreviousRedHit)
+            if (PreviousRedHit) // if the ball hit the paddle
             {
-                HitSound.Play(0.1f, 0, 1.0f);
-                Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y);
-                Angle.Normalize();
-                if (Angle.Y != 0 || Angle.X != 0)
+                HitSound.Play(0.1f, 0, 1.0f); // play soundeffect for hitting paddle
+                Vector2 Angle = new Vector2(redRectangle.X, currentBallRectangle.Y - redRectangle.Center.Y); // calculate the angle at which it must bounce back
+                Angle.Normalize(); //Normalise the angle to not increase speed unnecesseraly 
+                if (Angle.Y != 0 || Angle.X != 0) // if the angle calculated was not zero
                 {
-                    ballDirection.X = ballDirection.X * -Angle.X * 3;
-                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;
+                    ballDirection.X = ballDirection.X * -Angle.X * 3;  // horizontal direction flipped according to angle
+                    ballDirection.Y = ballDirection.Y * Angle.Y * 3;   // vertical direction changed according to angle
                 }
                 else
-                    ballDirection.X *= -1;
-                ballSpeed *= acceleration;
+                    ballDirection.X *= -1; // Flips ball direction horizontally if previous statement failed
+                ballSpeed *= acceleration; //Accelerates ball by previously defined amount
             }
 
 
-            else if (PreviousBlueHit)
+            else if (PreviousBlueHit) //Performs same checks as previous statement for the other paddle
             {
                 HitSound.Play(0.1f, 0, -1.0f);
                 Vector2 Angle = new Vector2(blueRectangle.Width, currentBallRectangle.Y - blueRectangle.Center.Y);
@@ -305,16 +306,16 @@ namespace pong
             }
         }
 
-        private void GameOver()
+        private void GameOver() // Called to check if lives are zero
         {
-            if (blueLives.GetLives <= 0)
+            if (blueLives.GetLives <= 0) //If blue has zero lives
             {
-                WinSoundEffect.Play(1.0f, 0, 0);
-                winner = Winner.Red;
-                currentState = GameState.Win;
+                WinSoundEffect.Play(1.0f, 0, 0); // Play appropriate sound effect
+                winner = Winner.Red; //Winner changed to blue
+                currentState = GameState.Win; //Sets game state to win
             }
 
-            if (redLives.GetLives <= 0)
+            if (redLives.GetLives <= 0)//Same if statement but for red player
             {
                 WinSoundEffect.Play(1.0f, 0, 0);
                 winner = Winner.Blue;
@@ -322,30 +323,30 @@ namespace pong
             }
         }
 
-        private void GameRestart()
+        private void GameRestart() // Called every frame
         {
 
-            if (Keyboard.GetState().IsKeyDown(Keys.R))
+            if (Keyboard.GetState().IsKeyDown(Keys.R))//If the R key is pressed during gameplay
             {
-                currentState = GameState.Start;
-                startBall();
-                blueLives.resetLives();
-                redLives.resetLives();
-                winner = Winner.None;
+                currentState = GameState.Start; // Gamestate returned to start
+                startBall(); //start ball statement called
+                blueLives.resetLives(); //reset lives statement called for blue player
+                redLives.resetLives(); //reset lives statement called for red player
+                winner = Winner.None; //Winner set to none
             }
         }
 
 
-        private void ballMissed()
+        private void ballMissed() //Called every frame
         {
-            if (ballPosition.X < -20)
+            if (ballPosition.X < -20) // if ball is left of the screen
             {
-                MissedSound.Play(0.2f, 0, 0);
-                blueLives.takeLive();
-                startBall();
+                MissedSound.Play(0.2f, 0, 0); //correct sound is played
+                blueLives.takeLive();//blue player loses one life(method explained later)
+                startBall();//start ball method called
             }
 
-            if (ballPosition.X > graphics.PreferredBackBufferWidth + 20)
+            if (ballPosition.X > graphics.PreferredBackBufferWidth + 20)//same statement for other side of the screen and red player
             {
                 MissedSound.Play(0.2f,0,0);
                 redLives.takeLive();
@@ -354,36 +355,36 @@ namespace pong
         }
 
     }
-    class Lives
+    class Lives //New class to manage lives
     {
-        int lives = 5;
-        Texture2D lifeSprite;
-        Vector2 livesPosition = new Vector2(20, 20);
-        public Lives(ContentManager Content, int livesPositionX)
+        int lives = 5; // Lives variable defined and set as 5
+        Texture2D lifeSprite; //Life texture defined
+        Vector2 livesPosition = new Vector2(20, 20);//Lives position defined
+        public Lives(ContentManager Content, int livesPositionX)//Loads textures and defines their position
         {
             lifeSprite = Content.Load<Texture2D>("ball");
             livesPosition.X = livesPositionX;
         }
 
-        public int GetLives
+        public int GetLives //returns number of lives
         {
             get { return lives; }
         }
 
-        public void takeLive()
+        public void takeLive() //Removes one life when called
         {
             lives--;
         }
-        public void resetLives()
+        public void resetLives() //Resets lives to given number
         {
             lives = 5;
         }
 
-        public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
+        public void Draw(GameTime gameTime, SpriteBatch spriteBatch)  // Draws lives until the loop stops
         {
-            for (int i = 0; i < lives; i++)
+            for (int i = 0; i < lives; i++) // loops for the amount of lives
             {
-                spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(i * 20, 0), Color.White);
+                spriteBatch.Draw(lifeSprite, livesPosition + new Vector2(i * 20, 0), Color.White); // draws lives next to each other
             }
         }
     }
