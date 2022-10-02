@@ -13,6 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin 4381__noisecollector__pongblipd-4.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:4381__noisecollector__pongblipd-4.wav;HitSoundEffect.wav
+
 #begin ball.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -36,6 +42,12 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:bluePlayer.png
+
+#begin MissedSound.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:MissedSound.wav
 
 #begin redPlayer.png
 /importer:TextureImporter
@@ -62,4 +74,10 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:StartingTextControls.spritefont
+
+#begin WinSoundEffect.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:WinSoundEffect.wav
 

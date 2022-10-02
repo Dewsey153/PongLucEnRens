@@ -21,33 +21,30 @@ namespace pong
 {
     public class pong : Game
     {
-        KeyboardState currentKBState = Keyboard.GetState();
         GraphicsDeviceManager graphics;
         SpriteBatch spriteBatch;
-        SpriteFont StartingTextCentral;
-        SpriteFont StartingTextControls;
-        SoundEffect WinSoundEffect;
-        SoundEffect HitSound;
-        SoundEffect MissedSound;
-        float ControlsPositionY = 20f;
-        float Controls1PostionX = 20f;
-        float Controls2PositionX = 560f;
-        Texture2D ball;
-        Texture2D blue;
-        Texture2D red;
-        Vector2 ballPosition;
-        Vector2 bluePosition;
-        Vector2 redPosition;
-        Vector2 ballDirection;
-        Vector2 oldMiddleBall;
-        Vector2 currentMiddleBall;
-        Vector2 ballDifference;
-        Vector2 CheckBall;
+        SpriteFont StartingTextCentral; // Font type for text in center starting and end screen
+        SpriteFont StartingTextControls; // Font type for controls in start screen en bottom text in end screen
+        SoundEffect WinSoundEffect; // Sound effect for if one player wins
+        SoundEffect HitSound; // Sound effect for start game and if ball hit paddle
+        SoundEffect MissedSound; // Sound effect if ball missed by paddle
+        const float ControlsPositionY = 20f; // Height of controls in starting screen
+        const float Controls1PositionX = 20f; // x coordinate of controls player one starting screen
+        const float Controls2PositionX = 560f; // x coordinate of controls player two starting screen
+        Texture2D ball; // Sprite ball
+        Texture2D blue; // Sprite player one (blue paddle)
+        Texture2D red; // Sprite player two (red paddle)
+        Vector2 ballPosition; // Updated vector for current position of ball
+        Vector2 bluePosition; // Updated vector for current position of player one (blue)
+        Vector2 redPosition; // Updated vector for current position of player two (red)
+        Vector2 ballDirection; // Normalized updated vector which points to direction the ball is going in 
+        Vector2 oldMiddleBall; // Vector which tells where the ball was in the last frame. This is compared with current position to determine path of ball when it goes fast
+        Vector2 ballDifference; // Vector made by comparing current en old middle ball, to determine path between frames
         int blueY = 100;
         int redY = 100;
         int ballVertical;
-        float ballX = 10f;
-        float ballY = 10f;
+        float currentBallX = 10f;
+        float currentBallY = 10f;
         float oldBallX = 10f;
         float oldBallY = 10f;
         float ballSpeed;
@@ -88,6 +85,8 @@ namespace pong
         {
             currentState = GameState.Start;
             winner = Winner.None;
+            bluePosition.X = 0;
+            bluePosition.Y = graphics.PreferredBackBufferHeight/2;
             startBall();
             redLives = new Lives(Content, graphics.PreferredBackBufferWidth - 116);
             blueLives = new Lives(Content, 20);
@@ -140,11 +139,11 @@ namespace pong
                     redY = redY + playerSpeed * gameTime.ElapsedGameTime.Milliseconds / 10;
                 }
 
-                oldBallX = ballX;
-                oldBallY = ballY;
+                oldBallX = currentBallX;
+                oldBallY = currentBallY;
 
-                ballX = ballPosition.X;
-                ballY = ballPosition.Y;
+                currentBallX = ballPosition.X;
+                currentBallY = ballPosition.Y;
 
                 if (redY <= 0) redY = 0;
                 if (blueY <= 0) blueY = 0;
@@ -152,11 +151,11 @@ namespace pong
                 if (blueY >= graphics.PreferredBackBufferHeight - blue.Height) blueY = graphics.PreferredBackBufferHeight - blue.Height;
 
                 checkBallHitPaddle();
-                ballX = ballPosition.X;
-                ballY = ballPosition.Y;
+                currentBallX = ballPosition.X;
+                currentBallY = ballPosition.Y;
                 ballMissed();
                 //bounce from walls
-                if (ballY >= graphics.PreferredBackBufferHeight - ball.Height || ballY <= 0) ballDirection.Y = -1 * ballDirection.Y;
+                if (ballPosition.Y >= graphics.PreferredBackBufferHeight - ball.Height || ballPosition.Y <= 0) ballDirection.Y = -1 * ballDirection.Y;
                 //move ball and players
                 ballDirection.Normalize();
                 if (ballDirection.X < minBallDirectionX && ballDirection.X > 0) ballDirection.X = minBallDirectionX; // X component ballDirection must be higher than a certain value to make sure the ball doesn't move too slow to the other side
@@ -186,10 +185,10 @@ namespace pong
             if (currentState == GameState.Start)
             {
                 spriteBatch.DrawString(StartingTextCentral, "Start the game by pressing any button", new Vector2(20, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PostionX, ControlsPositionY), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PositionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player Two", new Vector2(Controls2PositionX, ControlsPositionY), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PostionX, ControlsPositionY + 20), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PostionX, ControlsPositionY + 35), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PositionX, ControlsPositionY + 20), Color.Black);
+                spriteBatch.DrawString(StartingTextControls, "Down: S", new Vector2(Controls1PositionX, ControlsPositionY + 35), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Up: Up arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 20), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Down: Down arrow key", new Vector2(Controls2PositionX, ControlsPositionY + 35), Color.Black);
             }
@@ -200,13 +199,9 @@ namespace pong
                 spriteBatch.Draw(red, redPosition, Color.White);
                 blueLives.Draw(gameTime, spriteBatch);
                 redLives.Draw(gameTime, spriteBatch);
-                spriteBatch.DrawString(StartingTextControls, PreviousRedHit.ToString(), new Vector2(600, 200), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, PreviousBlueHit.ToString(), new Vector2(200, 200), Color.Black);
-                spriteBatch.DrawString(StartingTextControls, ballDifference.ToString(), new Vector2(300, 300), Color.Black);
-
-
-
             }
+
+            // Rens tot hier
 
             if (currentState == GameState.Win)
             {
@@ -228,8 +223,8 @@ namespace pong
         public void startBall()
         {
             ballSpeed = initialballSpeed;
-            ballX = graphics.PreferredBackBufferWidth / 2;
-            ballY = graphics.PreferredBackBufferHeight / 2;
+            ballPosition.X = graphics.PreferredBackBufferWidth / 2;
+            ballPosition.Y = graphics.PreferredBackBufferHeight / 2;
             int ballVerticalTemp = random.Next(-2, 2);
             if (ballVerticalTemp == 0)
             {
@@ -244,7 +239,6 @@ namespace pong
             else ballSpeedXRandom = ballSpeedXRandomTemp;
 
             ballDirection = new Vector2(ballSpeedXRandom, ballVertical * (5 - Math.Abs(ballSpeedXRandom)));
-            ballPosition = new Vector2(ballX, ballY);
             PreviousBlueHit = false;
             PreviousRedHit = false;
         }
@@ -253,16 +247,14 @@ namespace pong
         {
             oldBallRectangle = currentBallRectangle;
             oldMiddleBall = new Vector2(oldBallX, oldBallY);
-            currentBallRectangle = new Rectangle((int)ballX, (int)ballY, ball.Width, ball.Height);
-            currentMiddleBall = new Vector2(ballX, ballY);
+            currentBallRectangle = new Rectangle((int)ballPosition.X, (int)ballPosition.Y, ball.Width, ball.Height);
             redRectangle = new Rectangle((int)redPosition.X, (int)redPosition.Y, red.Width, red.Height);
             blueRectangle = new Rectangle((int)bluePosition.X, (int)bluePosition.Y, blue.Width, blue.Height);
-            CheckBall = Vector2.Zero;
 
-            ballDifference = currentMiddleBall - oldMiddleBall;
-            for (int i = 0; i < 50000; i++)
+            ballDifference = ballPosition - oldMiddleBall;
+            for (int i = 0; i < 100; i++)
             {
-                oldMiddleBall += ballDifference * 1 / 50000;
+                oldMiddleBall += ballDifference * 0.01f;
 
                 if ((redRectangle.Contains(oldMiddleBall) || redRectangle.Intersects(currentBallRectangle)) && !PreviousRedHit)
                 {
@@ -353,14 +345,14 @@ namespace pong
 
         private void ballMissed()
         {
-            if (ballX < -20)
+            if (ballPosition.X < -20)
             {
                 MissedSound.Play(0.2f, 0, 0);
                 blueLives.takeLive();
                 startBall();
             }
 
-            if (ballX > graphics.PreferredBackBufferWidth + 20)
+            if (ballPosition.X > graphics.PreferredBackBufferWidth + 20)
             {
                 MissedSound.Play(0.2f,0,0);
                 redLives.takeLive();
