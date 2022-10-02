@@ -33,7 +33,7 @@ namespace pong
         SoundEffect MissedSound; // Sound effect if ball missed by paddle
         const float ControlsPositionY = 20f; // Height of controls in starting screen
         const float Controls1PositionX = 20f; // x coordinate of controls player one starting screen
-        const float Controls2PositionX = 520f; // x coordinate of controls player two starting screen
+        const float Controls2PositionX = 570f; // x coordinate of controls player two starting screen
         Texture2D ball; // Sprite ball
         Texture2D blue; // Sprite player one (blue paddle)
         Texture2D red; // Sprite player two (red paddle)
@@ -165,6 +165,9 @@ namespace pong
 
                 ballDirection.Normalize(); // Normalize vector ballDirection a second time to make sure it does not affect speed op ball
                 ballPosition = Vector2.Add(ballPosition, ballSpeed * ballDirection * gameTime.ElapsedGameTime.Milliseconds / 10); // add velocity to the position of the ball
+
+                blueLives.Update(gameTime); // Call update method lifes class to make sure life cooldown timer actually decreases
+                redLives.Update(gameTime);
                 
                 GameOver(); // Check if a player has zero lives and act on it
             }
@@ -180,7 +183,7 @@ namespace pong
             if (currentState == GameState.Start)
             {
                 // Add text at the starting screen with controls for both players and instuctions to start the game
-                spriteBatch.DrawString(StartingTextCentral, "Press any button to begin!", new Vector2(120, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
+                spriteBatch.DrawString(StartingTextCentral, "Press any button to begin!", new Vector2(170, graphics.PreferredBackBufferHeight / 2 - 30), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player One", new Vector2(Controls1PositionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Controls Player Two", new Vector2(Controls2PositionX, ControlsPositionY), Color.Black);
                 spriteBatch.DrawString(StartingTextControls, "Up: W", new Vector2(Controls1PositionX, ControlsPositionY + 20), Color.Black);
@@ -329,6 +332,8 @@ namespace pong
             if (Keyboard.GetState().IsKeyDown(Keys.R))//If the R key is pressed during gameplay
             {
                 currentState = GameState.Start; // Gamestate returned to start
+                bluePosition = new Vector2(0, 200); // Start blue paddle at left side of screen at about the middle
+                redPosition = new Vector2(graphics.PreferredBackBufferWidth - 16, 200); // Start red paddle at right side of screen at about the middle
                 startBall(); //start ball statement called
                 blueLives.resetLives(); //reset lives statement called for blue player
                 redLives.resetLives(); //reset lives statement called for red player
@@ -360,6 +365,7 @@ namespace pong
         int lives = 5; // Lives variable defined and set as 5
         Texture2D lifeSprite; //Life texture defined
         Vector2 livesPosition = new Vector2(20, 20);//Lives position defined
+        float timer = 0; // Timer with cooldown for taking a life to prevent multiple lives being taken at roughly the same time
         public Lives(ContentManager Content, int livesPositionX)//Loads textures and defines their position
         {
             lifeSprite = Content.Load<Texture2D>("ball");
@@ -373,11 +379,25 @@ namespace pong
 
         public void takeLive() //Removes one life when called
         {
-            lives--;
+            if (timer <= 0) // Only take a life if timer is zero or less and set timer to 500 
+            {
+                lives--;
+                timer = 500f;
+            }
+
         }
+
         public void resetLives() //Resets lives to given number
         {
             lives = 5;
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            if (timer > 0)
+            {
+                timer -= gameTime.ElapsedGameTime.Milliseconds; // Decrease timer if its value is more than zero
+            }
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)  // Draws lives until the loop stops
